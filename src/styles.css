@@ -1,10 +1,8 @@
 @import "~prismjs/plugins/toolbar/prism-toolbar.css";
 @import "~prismjs/themes/prism.css";
-/* @import 'https://raw.githubusercontent.com/BadgerbiteInfo/BadgerbiteInfo.github.io/main/src/assets/css/bootstrap.min.css'; */
-/* @import 'https://raw.githubusercontent.com/BadgerbiteInfo/BadgerbiteInfo.github.io/main/src/assets/css/style.css';
-@import 'https://raw.githubusercontent.com/BadgerbiteInfo/BadgerbiteInfo.github.io/main/src/assets/css/green.css'; */
-/* @import '../src/assets/css/style.min.css'; */
-/* @import '../src/assets/css/style-dark.min.css'; */
+@import '../src/assets/css/style.css';
+@import '../src/assets/css/bootstrap.min.css';
+
 
 @font-face {
   font-family: Monaco;
