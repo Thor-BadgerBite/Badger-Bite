@@ -5,11 +5,10 @@ import { Injectable } from '@angular/core';
 })
 export class UtilsService {
 
-  constructor() {}
+  constructor() { }
 
   compactNumber(num: number, maximumFractionDigits = 0): string {
     return Intl.NumberFormat('en-US', {
-      notation: 'compact',
       maximumFractionDigits: maximumFractionDigits
     }).format(num);
   }
@@ -46,8 +45,7 @@ export class UtilsService {
     if (interval >= 1) {
       return interval + " minute" + (interval > 1 ? 's' : '');
     }
-    interval = Math.floor(seconds);
-    return interval + " second" + (interval > 1 ? 's' : '');
+    return Math.floor(seconds) + " second" + (interval > 1 ? 's' : '');
   }
 
   isIP6Address(ip: string) {

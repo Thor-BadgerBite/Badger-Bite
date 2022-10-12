@@ -1,5 +1,10 @@
 @import "~prismjs/plugins/toolbar/prism-toolbar.css";
 @import "~prismjs/themes/prism.css";
+/* @import 'https://raw.githubusercontent.com/BadgerbiteInfo/BadgerbiteInfo.github.io/main/src/assets/css/bootstrap.min.css'; */
+/* @import 'https://raw.githubusercontent.com/BadgerbiteInfo/BadgerbiteInfo.github.io/main/src/assets/css/style.css';
+@import 'https://raw.githubusercontent.com/BadgerbiteInfo/BadgerbiteInfo.github.io/main/src/assets/css/green.css'; */
+/* @import '../src/assets/css/style.min.css'; */
+/* @import '../src/assets/css/style-dark.min.css'; */
 
 @font-face {
   font-family: Monaco;
@@ -25,25 +30,6 @@ p.title {
 
 p.sub-title {
   font-size: 20px;
-}
-
-p.details {
-  line-height: 1.9;
-  opacity: var(--button-opacity);
-}
-
-/* Links */
-
-a {
-  color: var(--button-color)!important;
-}
-
-/* Code block */
-.code-block {
-  padding: 1em;
-  margin: 0.5em 0;
-  border-radius: var(--border-radius);
-  background-color: var(--code-background-color);
 }
 
 /* Tabs */
@@ -134,10 +120,6 @@ div.code-toolbar > .toolbar > .toolbar-item > button:active,
   opacity: 1;
 }
 
-.multiline.tooltip {
-  white-space: pre-line;
-}
-
 :root {
   --max-width: 1212px;
   --details-color: #57606a;
@@ -166,12 +148,10 @@ div.code-toolbar > .toolbar > .toolbar-item > button:active,
   body.left-hand-menu-open .bg-opacity {
     opacity: 0.5;
     background: white;
-    position: fixed;
+    position: absolute;
     height: 100%;
     width: 100%;
     z-index: 101; /*z-index 105 is for hand menu for mobile, this one should be less*/
-    top: 0;
-    bottom: 0;
   }
 
   body.left-hand-menu-open .card {

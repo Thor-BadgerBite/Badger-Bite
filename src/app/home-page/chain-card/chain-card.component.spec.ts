@@ -1,6 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import {Component} from '@angular/core';
 import { ChainCardComponent } from './chain-card.component';
+
+@Component({
+  selector: 'ngbd-progressbar-texttypes',
+  templateUrl: './chain-card.component.html'
+})
+export class NgbdProgressbarTextTypes {
+}
 
 describe('ChainCardComponent', () => {
   let component: ChainCardComponent;

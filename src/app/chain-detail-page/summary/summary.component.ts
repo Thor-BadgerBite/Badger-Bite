@@ -1,9 +1,60 @@
 import { Component, OnInit } from '@angular/core';
 import { ChainService } from "../../service/chain.service";
 import { Chain } from "../../model/chain";
-import Chart from 'chart.js/auto';
+import {
+  Chart,
+  ArcElement,
+  LineElement,
+  BarElement,
+  PointElement,
+  BarController,
+  BubbleController,
+  DoughnutController,
+  LineController,
+  PieController,
+  PolarAreaController,
+  RadarController,
+  ScatterController,
+  CategoryScale,
+  LinearScale,
+  LogarithmicScale,
+  RadialLinearScale,
+  TimeScale,
+  TimeSeriesScale,
+  Decimation,
+  Filler,
+  Legend,
+  Title,
+  Tooltip
+} from 'chart.js';
 import { ActivatedRoute, Router } from "@angular/router";
 import { UtilsService } from "../../service/utils.service";
+import { resetFakeAsyncZone } from '@angular/core/testing';
+Chart.register(
+  ArcElement,
+  LineElement,
+  BarElement,
+  PointElement,
+  BarController,
+  BubbleController,
+  DoughnutController,
+  LineController,
+  PieController,
+  PolarAreaController,
+  RadarController,
+  ScatterController,
+  CategoryScale,
+  LinearScale,
+  LogarithmicScale,
+  RadialLinearScale,
+  TimeScale,
+  TimeSeriesScale,
+  Decimation,
+  Filler,
+  Legend,
+  Title,
+  Tooltip
+);
 
 @Component({
   selector: 'app-summary',
@@ -14,6 +65,7 @@ export class SummaryComponent implements OnInit {
 
   chain?: Chain;
   price?: string;
+  priceunformatted?: any;
   summary?: any;
   CHART_INTERVAL_DAYS: number;
   noPrices?: boolean;
@@ -21,6 +73,7 @@ export class SummaryComponent implements OnInit {
   noMissedBlocks?: boolean;
   bondedTokensRatio?: any;
   tokensDistributionRatio?: any;
+  ValidatorSet?: any;
   athPriceRatio?: any;
 
   innerStrokeColor_SUCCESS: string;
@@ -68,13 +121,15 @@ export class SummaryComponent implements OnInit {
             this.summary.inflation = this.extractInflation(summary);
             this.summary.bondedTokens = this.extractBondedTokens(this.chain, summary);
             this.summary.totalSupply = this.extractTotalSupply(this.chain, summary);
-            this.summary.communityPool = this.extractCommunityPool(this.chain, summary);
+
+            // this.summary.communityPool = this.extractCommunityPool(this.chain, summary);
           }
         });
       let coingekoCoinId = this.chain.coingekoCoinId || this.chain.id;
       this.chainSummarySubscription = this.chainService.getCoingekoSummary(coingekoCoinId)
         .subscribe((coingekoSummary: any) => {
           this.price = this.extractPrice(coingekoSummary);
+          this.priceunformatted = this.extractPriceUnformated(coingekoSummary);
           let ratio = this.extractAthPriceRatio(coingekoSummary);
           if (ratio) {
             this.athPriceRatio = {
@@ -100,6 +155,21 @@ export class SummaryComponent implements OnInit {
               innerStrokeColor: this.innerStokeColorForRatio(ratio, 10, 25),
               outerStrokeColor: this.outerStokeColorByRatio(ratio, 10, 25)
             };
+            let active = this. extractTotalActive(validators);
+            let total=this.extractTotalVal(validators);
+            let jailed=this.extractTotalJailed(validators);
+            let rank=this.extractRank(validators);
+            let clients=this.extractClients(validators);
+            let assets=this.extractAssets(this.chain, validators);
+            this.ValidatorSet = {
+                active: active,
+                total: total,
+                jailed: jailed,
+                rank: rank,
+                clients: clients,
+                assets: assets,
+            };
+
             this.drawVotingPowerChart(validators, this.chain);
             this.drawCommissionDistributionChart(validators);
             this.drawMissedBlocksChart(validators);
@@ -124,9 +194,8 @@ export class SummaryComponent implements OnInit {
 
   extractBlockTime(summary: any): string {
     return Intl.NumberFormat('en-US', {
-      notation: 'compact',
       maximumFractionDigits: 2,
-    }).format(summary.blockTime) + 's';
+    }).format(summary.chain.params.actual_block_time) + 's';
   }
 
   extractPrice(coingekoSummary: any): string {
@@ -140,9 +209,17 @@ export class SummaryComponent implements OnInit {
       maximumSignificantDigits: 4
     }).format(price);
   }
+  
+  extractPriceUnformated(coingekoSummary: any): any {
+    let price = coingekoSummary?.market_data?.current_price?.usd;
+    if (!price) {
+      return '-';
+    }
+    return price
+  }
 
   extractInflation(summary: any): string {
-    let inflation = summary.inflation;
+    let inflation = summary.chain.params.base_inflation;
     if (!inflation) {
       return '-';
     }
@@ -151,66 +228,149 @@ export class SummaryComponent implements OnInit {
 
   displayPercent(val: any): string {
     return Intl.NumberFormat('en-US', {
-      notation: 'compact',
       maximumFractionDigits: 2,
       style: 'percent'
     }).format(val);
   }
 
-  extractBondedTokens(chain: Chain, summary: any): string {
-    let bondedTokens = summary.bondedTokens / Math.pow(10, chain.denomPow);
-    return this.utilsService.compactNumber(bondedTokens, 1);
+  extractBondedTokens(chain: Chain, summary: any): number {
+    let bondedTokens = summary.chain.params.bonded_tokens / Math.pow(10, chain.denomPow);
+    return bondedTokens
   }
-
   extractTotalSupply(chain: Chain, summary: any): string {
-    let totalSupply = this.findTotalSupply(chain, summary);
+    let totalSupply = summary.chain.params.total_supply;
     totalSupply = totalSupply / Math.pow(10, chain.denomPow);
-    return this.utilsService.compactNumber(totalSupply, 1);
+    return this.utilsService.compactNumber(totalSupply);
   }
 
-  findTotalSupply(chain: Chain, summary: any) {
-    let totalSupply = 0;
-    summary.totalSupply.supply.forEach(function (item: any) {
-      if (item.denom === chain.denomName) {
-        totalSupply = +item.amount;
-      }
-    });
-    return totalSupply
-  }
 
-  extractCommunityPool(chain: Chain, summary: any): string {
-    let communityPool = 0;
-    summary.communityPool.forEach(function (item: any) {
-      if (item.denom === chain.denomName) {
-        communityPool = +item.amount;
-      }
-    });
-    communityPool = communityPool / Math.pow(10, chain.denomPow);
-    return this.utilsService.compactNumber(communityPool);
-  }
+  // extractCommunityPool(chain: Chain, summary: any): string {
+  //  let communityPool = 0;
+  //   summary.communityPool.forEach(function (item: any) {
+  //     if (item.denom === chain.denomName) {
+  //       communityPool = +item.amount;
+  //     }
+  //   });
+  //   communityPool = communityPool / Math.pow(10, chain.denomPow);
+  //   return this.utilsService.compactNumber(communityPool);
+  // }
 
   extractBondedTokensRatio(chain: Chain, summary: any): number {
-    let bondedTokens = summary.bondedTokens;
-    let totalSupply = this.findTotalSupply(chain, summary);
-    return +(bondedTokens / totalSupply * 100).toFixed(2);
+
+    let bondedTokens = 0
+ 
+    bondedTokens = summary.chain.params.bonded_ratio*100;
+   
+    return bondedTokens
+  }
+
+
+  extractTotalVal(validators: any): number {
+    validators.validators.sort((a: any, b: any) => b.rank - a.rank)
+    validators.validators.reverse()
+    return validators.validators.length
+  }
+  
+  extractTotalActive(validators: any): number {
+    validators.validators.sort((a: any, b: any) => b.rank - a.rank)
+    validators.validators.reverse()
+    let TotalActive=0;
+    for (let i = 0; i < validators.validators.length; i++) {
+      let validator = validators.validators[i];
+      if (validator.active==true) {
+        TotalActive++;
+      }
+    }
+    return TotalActive
+  }
+  extractTotalJailed(validators: any): number {
+    validators.validators.sort((a: any, b: any) => b.rank - a.rank)
+    validators.validators.reverse()
+    let TotalActive=0;
+    for (let i = 0; i < validators.validators.length; i++) {
+      let validator = validators.validators[i];
+      if (validator.jailed==true) {
+        TotalActive++;
+      }
+    }
+    return TotalActive
+  }
+
+  extractRank(validators: any): any {
+    validators.validators.sort((a: any, b: any) => b.rank - a.rank)
+    validators.validators.reverse()
+    let ranking = 0;
+    for (let i = 0; i < validators.validators.length; i++) {
+      let validator = validators.validators[i];
+      if (validator.operator_address == this.chain?.Valoper) {
+          ranking = validator.rank;
+      }
+    }
+  return ranking
+  }
+
+  extractClients(validators: any): any {
+    validators.validators.sort((a: any, b: any) => b.rank - a.rank)
+    validators.validators.reverse()
+    let clients = 0;
+    for (let i = 0; i < validators.validators.length; i++) {
+      let validator = validators.validators[i];
+      if (validator.operator_address == this.chain?.Valoper) {
+          clients = validator.delegations.total_count;
+      }
+    }
+  return clients
+  }
+
+  extractAssets(chain: Chain, validators: any): any {
+    validators.validators.sort((a: any, b: any) => b.rank - a.rank)
+    validators.validators.reverse()
+    let pow = Math.pow(10, chain.denomPow);
+    let price = this.priceunformatted;
+    let assets = 0;
+    for (let i = 0; i < validators.validators.length; i++) {
+      let validator = validators.validators[i];
+      if (validator.operator_address == this.chain?.Valoper) {
+          assets = Math.round(validator.tokens) * price / pow ;
+      }
+    }
+  return Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumSignificantDigits: 4
+  }).format(assets)
   }
 
   extractTokensDistributionRatio(validators: any): number {
+    validators.validators.sort((a: any, b: any) => b.rank - a.rank)
+    validators.validators.reverse()
     let totalVotingPower = 0;
-    validators.forEach((validator: any) => {
-      totalVotingPower += validator.votingPower;
-    });
+    totalVotingPower = this.summary?.chain.params.bonded_tokens;
+    // validators.validators.forEach((validators: any) => {
+    //   totalVotingPower += validators.delegations.total_tokens_display;
+    // });
     let validatorsNum = 0;
     let tmpVotingPower = 0;
     let percentage = 0;
-    for (let i = 0; i < validators.length && !percentage; i++) {
-      let validator = validators[i];
-      tmpVotingPower += validator.votingPower;
-      validatorsNum++;
-      if (tmpVotingPower / totalVotingPower * 100 >= 50) {
-        percentage = +(validatorsNum / validators.length * 100).toFixed(2);
+    let TotalActive=0;
+    for (let i = 0; i < validators.validators.length; i++) {
+      let validator = validators.validators[i];
+      if (validator.active==true) {
+        TotalActive++;
       }
     }
+    for (let i = 0; i < validators.validators.length && !percentage; i++) {
+      let validator = validators.validators[i];
+      if (validator.active==true) {
+        tmpVotingPower = tmpVotingPower + Math.round (validator.delegations.total_tokens);
+        validatorsNum++;
+      }
+      if (tmpVotingPower / totalVotingPower * 100 >= 50) {
+        percentage = +(validatorsNum / TotalActive * 100).toFixed(2);
+      }
+    }
+    // percentage=(100-percentage);
+    percentage=percentage*2;
     return percentage;
   }
 
@@ -254,7 +414,8 @@ export class SummaryComponent implements OnInit {
       let priceLabel = new Date(item);
       pricesLabels.push(priceLabel.toLocaleDateString('en', {month: 'short', day: 'numeric'}));
     });
-
+    
+    
     let priceChart = new Chart('priceChart', {
       type: 'line',
       data: {
@@ -419,10 +580,10 @@ export class SummaryComponent implements OnInit {
 
   drawVotingPowerChart(validators: any, chain: Chain): void {
     let _this = this;
-    validators.sort((a: any, b: any) => b.votingPower - a.votingPower)
-    let top20validators = validators.slice(0, 9);
+    validators.validators.sort((a: any, b: any) => b.delegations.total_tokens_display - a.delegations.total_tokens_display)
+    let top20validators = validators.validators.slice(0, 9);
     let labels = top20validators.map((validator: any) => validator.moniker);
-    let data = top20validators.map((validator: any) => validator.votingPower / Math.pow(10, chain.denomPow))
+    let data = top20validators.map((validator: any) => Math.round(validator.delegator_shares/ Math.pow(10, chain.denomPow)));
     let votingPowerChart = new Chart('votingPowerChart', {
       type: 'bar',
       data: {
@@ -503,11 +664,11 @@ export class SummaryComponent implements OnInit {
 
   drawCommissionDistributionChart(validators: any): void {
     let commissionDistribution: any = {};
-    validators.forEach((validator: any) => {
-      if (!commissionDistribution[validator.commission]) {
-        commissionDistribution[validator.commission] = 0;
+    validators.validators.forEach((validator: any) => {
+      if (!commissionDistribution[validator.commission.commission_rates.rate]) {
+        commissionDistribution[validator.commission.commission_rates.rate] = 0;
       }
-      commissionDistribution[validator.commission]++;
+      commissionDistribution[validator.commission.commission_rates.rate]++;
     });
 
     let sortableArray: any = [];
@@ -593,8 +754,11 @@ export class SummaryComponent implements OnInit {
 
   drawMissedBlocksChart(validators: any): void {
 
-    let labels = validators.filter((validator: any) => validator.missedBlocks).map((validator: any) => validator.moniker);
-    let data = validators.filter((validator: any) => validator.missedBlocks).map((validator: any) => validator.missedBlocks);
+    validators.validators.sort((a: any, b: any) => b.missed_blocks_periods[1]?.missed - a.missed_blocks_periods[1]?.missed)
+    // validators.validators.reverse()
+    let topActivevalidators = validators.validators.slice(0, 125);
+    let labels = validators.validators.filter((validator: any) => validator.missed_blocks_periods[1]?.missed && validator.active).map((validator: any) => validator.moniker);
+    let data = validators.validators.filter((validator: any) => validator.missed_blocks_periods[1]?.missed && validator.active).map((validator: any) => validator.missed_blocks_periods[1]?.missed);
 
     if (!data.length) {
       this.noMissedBlocks = true;

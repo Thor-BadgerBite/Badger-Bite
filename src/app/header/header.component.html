@@ -1,17 +1,17 @@
 <header>
   <div class="container">
-    <a class="logo text-decoration-none" routerLink="/" (click)="handleLogoClick()">
-      <img class="logo-image" src="assets/img/logo.svg" alt="Nodejumper">
-      <p class="title">Nodejumper</p>
-    </a>
+    <div class="logo" routerLink="/" (click)="stateService.chainType.next('all')">
+      <img class="logo-image" src="assets/img/logo.svg" alt="BadgerBite">
+      <p class="title">BadgerBite</p>
+    </div>
     <div>
-      <a class="btn btn-block btn-social btn-twitter shadow-none" href="https://twitter.com/nodejumper" target="_blank">
+      <a class="btn btn-block btn-social btn-twitter shadow-none" href="https://twitter.com/bite_badger" target="_blank">
         <span class="social-icon fa-brands fa-twitter"></span>
       </a>
-      <a class="btn btn-block btn-social btn-github shadow-none" href="https://github.com/nodejumper-org" target="_blank">
+      <a class="btn btn-block btn-social btn-github shadow-none" href="https://github.com/BadgerbiteInfo" target="_blank">
         <span class="social-icon fa-brands fa-github"></span>
       </a>
-      <a class="btn btn-block btn-social btn-telegram shadow-none" href="https://t.me/nodejumper" target="_blank">
+      <a class="btn btn-block btn-social btn-telegram shadow-none" href="https://t.me/BadgerbiteValidator" target="_blank">
         <span class="social-icon fa-brands fa-telegram"></span>
       </a>
       <a class="btn btn-block btn-bars-menu shadow-none hide" id="btn-bars-menu" (click)="openLeftHandMenuForMobile()">

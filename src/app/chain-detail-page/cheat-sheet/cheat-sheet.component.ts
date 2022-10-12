@@ -24,7 +24,7 @@ export class CheatSheetComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.chainService.activeChain) {
-      let activeChain = this.chainService.activeChain;
+      let activeChain = this.chainService.activeChain
       let savedChainInfo = JSON.parse(localStorage.getItem(activeChain.chainId) || '{}');
 
       this.chain = new ChainCheatSheet(
@@ -36,8 +36,8 @@ export class CheatSheetComponent implements OnInit {
         savedChainInfo.keyName || 'wallet',
         savedChainInfo.gas || 0.1,
         savedChainInfo.moniker || 'Moniker',
-        savedChainInfo.identity || 'FFB0AA51A2DF5954', // nodejumper keybase
-        savedChainInfo.details || 'I\'m sexy and I know it😉',
+        savedChainInfo.identity || 'DE08041434EBB322', // BadgerBite keybase
+        savedChainInfo.details || 'The Best Validator in Town',
         savedChainInfo.proposalId || 1,
         savedChainInfo.toValoperAddress || '',
         savedChainInfo.toWalletAddress || '',

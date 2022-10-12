@@ -1,7 +1,7 @@
 import { Component, Inject, Input, OnInit } from '@angular/core';
 import { Chain } from "../../model/chain";
 import { ChainStatus } from "../../model/chainStatus";
-import { DOCUMENT, ViewportScroller } from '@angular/common';
+import { DOCUMENT } from '@angular/common';
 import { LeftHandMenuService } from "../../service/left-hand-menu.service";
 import { ChainService } from "../../service/chain.service";
 import { UtilsService } from "../../service/utils.service";
@@ -20,8 +20,7 @@ export class LeftHandMenuComponent implements OnInit {
   constructor(@Inject(DOCUMENT) private document: Document,
               private leftHandMenuService: LeftHandMenuService,
               public chainService: ChainService,
-              private utilsService: UtilsService,
-              private viewportScroller: ViewportScroller) {
+              private utilsService: UtilsService) {
   }
 
   ngOnInit(): void {
@@ -43,13 +42,20 @@ export class LeftHandMenuComponent implements OnInit {
             const latestBlockHeight = data.result.sync_info.latest_block_height;
             const latestBlockTime = data.result.sync_info.latest_block_time;
             const timeDifferenceInSeconds = this.utilsService.humanReadableTimeDifferenceSeconds(latestBlockTime);
-            this.chainStatus = timeDifferenceInSeconds > 60 ? ChainStatus.HALTED : ChainStatus.SYNCED;
-            this.chainStatusMessage = `Latest Block: ${latestBlockHeight}
-            (${this.utilsService.secondsToHumanReadableFormat(timeDifferenceInSeconds)} ago)`;
+            if (timeDifferenceInSeconds > 600) { // 10 minutes
+              this.chainStatus = ChainStatus.HALTED;
+              this.chainStatusMessage = `Chain is halted ${this.utilsService.secondsToHumanReadableFormat(timeDifferenceInSeconds)}
+               ago, latest block height: ${latestBlockHeight}`
+              return;
+            }
+            this.chainStatus = ChainStatus.SYNCED;
+            this.chainStatusMessage = this.chain?.summaryDisabled
+              ? `Chain is up and running, latest block height: ${latestBlockHeight}`
+              : 'Chain is up and running';
           },
           error: (error: any) => {
             this.chainStatus = ChainStatus.INACTIVE;
-            this.chainStatusMessage = 'RPC server is temporary unavailable.';
+            this.chainStatusMessage = 'Our RPC node is down, apologies for inconvenience.';
           }
         });
     }
@@ -66,7 +72,7 @@ export class LeftHandMenuComponent implements OnInit {
     }
   }
 
-  scrollToFragment(fragmentId: string) {
-    this.viewportScroller.scrollToAnchor(fragmentId);
+  closeLeftHandMenuForMobile(): void {
+    this.leftHandMenuService.closeLeftHandMenuForMobile();
   }
 }

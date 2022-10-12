@@ -48,15 +48,12 @@
 }
 
 .menu .item {
-  width: 100%;
-  display: inline-block;
   padding-top: 5px;
   padding-bottom: 5px;
   padding-left: 20px;
   cursor: pointer;
   user-select: none;
   transition: all var(--animation-speed) ease-out;
-  text-decoration: none;
 }
 
 .menu .item:hover,
@@ -65,7 +62,7 @@
 }
 
 .menu .item.active {
-  color: white !important;
+  color: white;
   background-color: var(--button-color);
   opacity: var(--button-opacity);
 }
@@ -90,14 +87,11 @@
 }
 
 .menu .sub-item {
-  width: 100%;
-  display: inline-block;
   padding-top: 5px;
   padding-bottom: 5px;
   padding-left: 35px;
   cursor: pointer;
   user-select: none;
-  text-decoration: none;
 }
 
 .menu .sub-item:hover {
